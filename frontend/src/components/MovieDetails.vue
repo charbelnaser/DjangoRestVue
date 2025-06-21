@@ -100,7 +100,7 @@
                 </option>
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <button 
                 class="btn btn-success w-100"
                 @click="addSelectedActor"
@@ -108,6 +108,16 @@
                 >
                 Add Selected Actor
                 </button>
+             </div>
+             <div class="col-md-2">
+              <button 
+                class="btn btn-danger w-100"
+                @click="deleteSelectedActor"
+                :disabled="!selectedActorId"
+                title="Delete selected actor"
+              >
+                Delete Selected Actor
+              </button>
             </div>
             </div>
 
@@ -221,6 +231,7 @@ export default {
         first_name: '',
         last_name: '',
     },
+  
    
   }
    
@@ -247,7 +258,6 @@ export default {
       axios.get('http://127.0.0.1:8000/actors/')
         .then(res => {
           this.allActors = res.data;
-
           // If movie already loaded, select actors currently assigned to movie
           if (this.movie.actors) {
             this.editedActors = this.allActors.filter(actor =>
@@ -278,17 +288,19 @@ export default {
       this.editedActors = JSON.parse(JSON.stringify(this.movie.actors))
     },
     addNewActorToList() {
-    if (this.newActor.first_name.trim() && this.newActor.last_name.trim()) {
-        this.editedActors.push({
-        first_name: this.newActor.first_name,
-        last_name: this.newActor.last_name,
-        id: null // means this actor is new
-        })
-        this.newActor.first_name = ''
-        this.newActor.last_name = ''
-    }
+      if (this.newActor.first_name.trim() && this.newActor.last_name.trim()) {
+          this.editedActors.push({
+          first_name: this.newActor.first_name,
+          last_name: this.newActor.last_name,
+          id: null // means this actor is new
+          })
+          this.newActor.first_name = ''
+          this.newActor.last_name = ''
+      }
+      },
+    removeActor(index) {
+      this.editedActors.splice(index, 1);
     },
-    
     async saveActors() {
         const actorIds = []
         for (const actor of this.editedActors) {
@@ -305,7 +317,7 @@ export default {
         }
       }
       axios.patch(`http://127.0.0.1:8000/movies/${this.movie.id}/`, {
-        actors: this.editedActors.map(actor => actor.id)
+        actors: actorIds
       })
       .then(() => {
         this.movie.actors = JSON.parse(JSON.stringify(this.editedActors))
@@ -326,9 +338,47 @@ export default {
         this.newReviewGrade = 0
       })
       .catch(err => console.error(err))
-    }
+    },
+    addSelectedActor() {
+      const actor = this.allActors.find(a => a.id === this.selectedActorId);
+      if (actor && !this.editedActors.find(a => a.id === actor.id)) {
+          this.editedActors.push({
+            first_name: actor.first_name,
+            last_name: actor.last_name,
+            id: null // means this actor is new
+            })
+      }
+      this.selectedActorId = '';
+    },
+    
+    async deleteSelectedActor() {
+      if (!this.selectedActorId) return;
+
+      if (!confirm('Are you sure you want to delete the selected actor?')) return;
+
+      try {
+        await axios.delete(`http://127.0.0.1:8000/actors/${this.selectedActorId}/`);
+
+        // Remove deleted actor from allActors
+        this.allActors = this.allActors.filter(actor => actor.id !== this.selectedActorId);
+
+        // Remove from editedActors too, if exists
+        this.editedActors = this.editedActors.filter(actor => actor.id !== this.selectedActorId);
+
+        // Remove from movie actors if exists
+        if (this.movie && this.movie.actors) {
+          this.movie.actors = this.movie.actors.filter(actor => actor.id !== this.selectedActorId);
+        }
+
+        // Clear the selectedActorId after delete
+        this.selectedActorId = '';
+      } catch (error) {
+        console.error(error);
+        alert('Failed to delete actor.');
+      }
+    },
   },
-  mounted() {
+  mounted() {      
     this.fetchMovie();
     this.fetchAllActors();
   }
