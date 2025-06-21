@@ -1,7 +1,5 @@
-from django.shortcuts import render
-from .models import Movie, Actor
-from .serializers import MovieSerializer, ActorSerializer
-from rest_framework.decorators import api_view
+from .models import Movie, Actor, Review
+from .serializers import MovieSerializer, ActorSerializer, ReviewSerializer
 from rest_framework import viewsets
 
 class MovieViewSet(viewsets.ModelViewSet):
@@ -12,3 +10,8 @@ class MovieViewSet(viewsets.ModelViewSet):
 class ActorViewSet(viewsets.ModelViewSet):
     queryset = Actor.objects.all()
     serializer_class = ActorSerializer
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
