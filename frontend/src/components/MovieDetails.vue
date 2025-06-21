@@ -45,51 +45,83 @@
 
         <!-- Actors Section -->
         <div class="mb-4">
-          <h5>Actors</h5>
-          <ul v-if="!editingActors" class="list-group mb-2">
-            <li
-              v-for="actor in movie.actors"
-              :key="actor.id"
-              class="list-group-item"
-            >
-              {{ actor.first_name }} {{ actor.last_name }}
-            </li>
-          </ul>
+        <h5>Actors</h5>
 
-          <div v-else class="row g-2">
-            <div
-              v-for="(actor, index) in editedActors"
-              :key="index"
-              class="col-md-6"
+        <!-- Use template to wrap v-if block -->
+        <template v-if="!editingActors">
+            <ul class="list-group mb-2">
+            <li
+                v-for="actor in movie.actors"
+                :key="actor.id"
+                class="list-group-item"
             >
-              <input
+                {{ actor.first_name }} {{ actor.last_name }}
+            </li>
+            </ul>
+        </template>
+
+        <!-- Use template to wrap v-else block -->
+        <template v-else>
+            <div class="row g-2">
+            <div
+                v-for="(actor, index) in editedActors"
+                :key="index"
+                class="col-md-6"
+            >
+                <input
                 v-model="editedActors[index].first_name"
                 type="text"
                 class="form-control mb-1"
                 placeholder="First Name"
-              />
-              <input
+                />
+                <input
                 v-model="editedActors[index].last_name"
                 type="text"
                 class="form-control"
                 placeholder="Last Name"
-              />
+                />
             </div>
-          </div>
+            </div>
 
-          <button
+            <!-- Add New Actor Inputs -->
+            <div class="row mt-3">
+            <div class="col-md-5">
+                <input
+                v-model="newActor.first_name"
+                type="text"
+                class="form-control"
+                placeholder="New Actor First Name"
+                />
+            </div>
+            <div class="col-md-5">
+                <input
+                v-model="newActor.last_name"
+                type="text"
+                class="form-control"
+                placeholder="New Actor Last Name"
+                />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" @click="addNewActorToList">
+                Add
+                </button>
+            </div>
+            </div>
+        </template>
+
+        <button
             class="btn btn-sm btn-outline-secondary me-2 mt-2"
             @click="toggleEditActors"
-          >
+        >
             {{ editingActors ? 'Cancel' : 'Edit Actors' }}
-          </button>
-          <button
+        </button>
+        <button
             v-if="editingActors"
             class="btn btn-sm btn-primary mt-2"
             @click="saveActors"
-          >
+        >
             Save Actors
-          </button>
+        </button>
         </div>
 
         <!-- Average Rating -->
@@ -151,7 +183,19 @@ export default {
        reviews: [],
        id: null,
     },
+    editingDescription: false,
+    editedDescription: '',
+    editingActors: false,
+    allActors: [], 
+    selectedActorId: '',
+    editedActors: [],
+    newReviewGrade: 0,
+    newActor: {
+        first_name: '',
+        last_name: '',
     }
+    }
+   
   },
   computed: {
     averageRating() {
@@ -172,6 +216,7 @@ export default {
         .catch(err => console.error(err))
     },
     toggleEditDescription() {
+      if (!this.movie) return
       this.editingDescription = !this.editingDescription
       this.editedDescription = this.movie.description
     },
@@ -189,7 +234,33 @@ export default {
       this.editingActors = !this.editingActors
       this.editedActors = JSON.parse(JSON.stringify(this.movie.actors))
     },
-    saveActors() {
+    addNewActorToList() {
+    if (this.newActor.first_name.trim() && this.newActor.last_name.trim()) {
+        this.editedActors.push({
+        first_name: this.newActor.first_name,
+        last_name: this.newActor.last_name,
+        id: null // means this actor is new
+        })
+        this.newActor.first_name = ''
+        this.newActor.last_name = ''
+    }
+    },
+    
+    async saveActors() {
+        const actorIds = []
+        for (const actor of this.editedActors) {
+        if (actor.id) {
+            // Existing actor
+            actorIds.push(actor.id)
+        } else {
+            // New actor ? save it to DB
+            const res = await axios.post('http://127.0.0.1:8000/actors/', {
+            first_name: actor.first_name,
+            last_name: actor.last_name
+            })
+            actorIds.push(res.data.id)
+        }
+      }
       axios.patch(`http://127.0.0.1:8000/movies/${this.movie.id}/`, {
         actors: this.editedActors.map(actor => actor.id)
       })
