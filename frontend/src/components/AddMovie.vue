@@ -46,7 +46,7 @@
 
 <script>
 import axios from 'axios';
-
+const API_URL = process.env.VUE_APP_API_URL || 'http://127.0.0.1:8000';
 export default {
   name: 'AddMovie',
   data() {
@@ -63,7 +63,7 @@ export default {
   },
   methods: {
     fetchActors() {
-      axios.get('http://127.0.0.1:8000/actors/')
+      axios.get(`${API_URL}/actors/`)
         .then(res => {
             
           this.allActors = res.data.results;
@@ -89,7 +89,7 @@ export default {
     async submitMovie() {
       try {
         // 1. Create movie
-        const movieRes = await axios.post('http://127.0.0.1:8000/movies/', {
+        const movieRes = await axios.post(`${API_URL}/movies/`, {
           title: this.movie.title,
           description: this.movie.description,
           actors: this.selectedActors.map(actor => actor.id)
@@ -99,7 +99,7 @@ export default {
 
         // 2. Submit initial review (optional)
         if (this.initialReview) {
-          await axios.post('http://127.0.0.1:8000/reviews/', {
+          await axios.post(`${API_URL}/reviews/`, {
             grade: this.initialReview,
             movie: movieId
           });

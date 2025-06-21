@@ -208,7 +208,7 @@
 
 <script>
 import axios from 'axios'
-
+const API_URL = process.env.VUE_APP_API_URL || 'http://127.0.0.1:8000';
 export default {
   name: 'MovieDetails',
   data() {
@@ -249,7 +249,7 @@ export default {
   methods: {
     fetchMovie() {
       const id = this.$route.params.id
-      axios.get(`http://127.0.0.1:8000/movies/${id}/`)
+      axios.get(`${API_URL}/movies/${id}/`)
         .then(res => {
           this.movie = res.data
           this.editedDescription = this.movie.description
@@ -260,7 +260,7 @@ export default {
     async fetchAllActors() {
         try {
           let allActors = [];
-          let url = 'http://127.0.0.1:8000/actors/'; // initial API endpoint
+          let url = `${API_URL}/actors/`; // initial API endpoint
 
           while (url) {
             const response = await axios.get(url);
@@ -280,7 +280,7 @@ export default {
       this.editedDescription = this.movie.description
     },
     saveDescription() {
-      axios.patch(`http://127.0.0.1:8000/movies/${this.movie.id}/`, {
+      axios.patch(`${API_URL}/movies/${this.movie.id}/`, {
         description: this.editedDescription
       })
       .then(() => {
@@ -300,7 +300,7 @@ export default {
         // Send new actor to backend API
 
 
-        axios.post('http://127.0.0.1:8000/actors/', {
+        axios.post(`${API_URL}/actors/`, {
           first_name: this.newActor.first_name,
           last_name: this.newActor.last_name
         })
@@ -329,14 +329,14 @@ export default {
             actorIds.push(actor.id)
         } else {
             // New actor ? save it to DB
-            const res = await axios.post('http://127.0.0.1:8000/actors/', {
+            const res = await axios.post(`${API_URL}/actors/`, {
               first_name: actor.first_name,
               last_name: actor.last_name
             })
             actorIds.push(res.data.id)
         }
       }
-      axios.patch(`http://127.0.0.1:8000/movies/${this.movie.id}/`, {
+      axios.patch(`${API_URL}/movies/${this.movie.id}/`, {
         actors: actorIds
       })
       .then(() => {
@@ -349,7 +349,7 @@ export default {
       this.editingActors = false
     },
     submitReview() {
-      axios.post(`http://127.0.0.1:8000/reviews/`, {
+      axios.post(`${API_URL}/reviews/`, {
         grade: this.newReviewGrade,
         movie: this.movie.id
       })
@@ -377,7 +377,7 @@ export default {
       if (!confirm('Are you sure you want to delete the selected actor?')) return;
 
       try {
-        await axios.delete(`http://127.0.0.1:8000/actors/${this.selectedActorId}/`);
+        await axios.delete(`${API_URL}/actors/${this.selectedActorId}/`);
 
         // Remove deleted actor from allActors
         this.allActors = this.allActors.filter(actor => actor.id !== this.selectedActorId);
