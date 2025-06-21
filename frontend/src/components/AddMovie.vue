@@ -15,7 +15,7 @@
     <!-- Select Actors -->
     <div class="mb-3">
       <label>Select Actors:</label>
-      <select v-model="selectedActorId" class="form-select">
+        <select v-model.number="selectedActorId" class="form-select">
         <option disabled value="">Choose actor</option>
         <option v-for="actor in allActors" :key="actor.id" :value="actor.id">
           {{ actor.first_name }} {{ actor.last_name }}
@@ -25,10 +25,10 @@
 
       <ul class="list-group mt-2">
         <li v-for="actor in selectedActors" :key="actor.id" class="list-group-item d-flex justify-content-between align-items-center">
-          {{ actor.first_name }} {{ actor.last_name }}
-          <button class="btn btn-sm btn-danger" @click="removeActor(actor.id)">Remove</button>
+            {{ actor.first_name }} {{ actor.last_name }}
+            <button class="btn btn-sm btn-danger" @click="removeActor(actor.id)">Remove</button>
         </li>
-      </ul>
+       </ul>
     </div>
 
     <!-- Initial Review -->
@@ -65,16 +65,23 @@ export default {
     fetchActors() {
       axios.get('http://127.0.0.1:8000/actors/')
         .then(res => {
-          this.allActors = res.data;
+            
+          this.allActors = res.data.results;
+         
+
         })
         .catch(err => console.error(err));
     },
     addActor() {
-      const actor = this.allActors.find(a => a.id === this.selectedActorId);
-      if (actor && !this.selectedActors.some(a => a.id === actor.id)) {
-        this.selectedActors.push(actor);
-      }
-      this.selectedActorId = '';
+        if (!this.selectedActorId) return;  // Don't do anything if nothing is selected
+
+        const actor = this.allActors.find(a => a.id === this.selectedActorId);
+
+        if (actor && !this.selectedActors.some(a => a.id === actor.id)) {
+            this.selectedActors.push(actor);
+        }
+
+        this.selectedActorId = '';  // Reset selection
     },
     removeActor(id) {
       this.selectedActors = this.selectedActors.filter(actor => actor.id !== id);

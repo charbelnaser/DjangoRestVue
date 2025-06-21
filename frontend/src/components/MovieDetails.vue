@@ -227,6 +227,9 @@ export default {
     selectedActorId: '',
     editedActors: [],
     newReviewGrade: 0,
+    nextPage: null,
+    previousPage: null,
+    currentPage: 1,
     newActor: {
         first_name: '',
         last_name: '',
@@ -254,18 +257,21 @@ export default {
         })
         .catch(err => console.error(err))
     },
-    fetchAllActors() {
-      axios.get('http://127.0.0.1:8000/actors/')
-        .then(res => {
-          this.allActors = res.data;
-          // If movie already loaded, select actors currently assigned to movie
-          if (this.movie.actors) {
-            this.editedActors = this.allActors.filter(actor =>
-              this.movie.actors.includes(actor.id)
-            );
+    async fetchAllActors() {
+        try {
+          let allActors = [];
+          let url = 'http://127.0.0.1:8000/actors/'; // initial API endpoint
+
+          while (url) {
+            const response = await axios.get(url);
+            allActors = allActors.concat(response.data.results);
+            url = response.data.next; // next page URL or null
           }
-        })
-        .catch(err => console.error(err));
+
+          this.allActors = allActors; // set your data property
+        } catch (error) {
+          console.error('Error fetching actors:', error);
+        }
     },
     // Call fetchAllActors() on mounted()
     toggleEditDescription() {
@@ -288,14 +294,28 @@ export default {
       this.editedActors = JSON.parse(JSON.stringify(this.movie.actors))
     },
     addNewActorToList() {
+
+       
       if (this.newActor.first_name.trim() && this.newActor.last_name.trim()) {
-          this.editedActors.push({
+        // Send new actor to backend API
+
+
+        axios.post('http://127.0.0.1:8000/actors/', {
           first_name: this.newActor.first_name,
-          last_name: this.newActor.last_name,
-          id: null // means this actor is new
-          })
-          this.newActor.first_name = ''
-          this.newActor.last_name = ''
+          last_name: this.newActor.last_name
+        })
+        .then(res => {
+          // Add the actor returned from server (with assigned ID) to the list
+          this.editedActors.push(res.data);
+
+          // Clear the form
+          this.newActor.first_name = '';
+          this.newActor.last_name = '';
+        })
+        .catch(err => {
+          console.error('Failed to add actor:', err);
+          alert('Failed to add new actor');
+        });
       }
       },
     removeActor(index) {
@@ -310,8 +330,8 @@ export default {
         } else {
             // New actor ? save it to DB
             const res = await axios.post('http://127.0.0.1:8000/actors/', {
-            first_name: actor.first_name,
-            last_name: actor.last_name
+              first_name: actor.first_name,
+              last_name: actor.last_name
             })
             actorIds.push(res.data.id)
         }
