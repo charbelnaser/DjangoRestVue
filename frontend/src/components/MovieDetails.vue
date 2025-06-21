@@ -43,25 +43,19 @@
           </button>
         </div>
 
-        <!-- Actors Section -->
         <div class="mb-4">
         <h5>Actors</h5>
 
-        <!-- Use template to wrap v-if block -->
         <template v-if="!editingActors">
             <ul class="list-group mb-2">
-            <li
-                v-for="actor in movie.actors"
-                :key="actor.id"
-                class="list-group-item"
-            >
+            <li v-for="actor in movie.actors" :key="actor.id" class="list-group-item">
                 {{ actor.first_name }} {{ actor.last_name }}
             </li>
             </ul>
         </template>
 
-        <!-- Use template to wrap v-else block -->
         <template v-else>
+            <!-- Editable existing actors -->
             <div class="row g-2">
             <div
                 v-for="(actor, index) in editedActors"
@@ -80,10 +74,44 @@
                 class="form-control"
                 placeholder="Last Name"
                 />
+                <button 
+                class="btn btn-sm btn-danger mt-1" 
+                @click="removeActor(index)"
+                title="Remove actor"
+                >Remove</button>
             </div>
             </div>
 
-            <!-- Add New Actor Inputs -->
+            <!-- Select existing actors dropdown -->
+            <div class="row mt-3 align-items-center">
+            <div class="col-md-8">
+                <select
+                v-model="selectedActorId"
+                class="form-select"
+                :disabled="allActors.length === 0"
+                >
+                <option value="" disabled>Select existing actor to add</option>
+                <option
+                    v-for="actor in allActors"
+                    :key="actor.id"
+                    :value="actor.id"
+                >
+                    {{ actor.first_name }} {{ actor.last_name }}
+                </option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button 
+                class="btn btn-success w-100"
+                @click="addSelectedActor"
+                :disabled="!selectedActorId"
+                >
+                Add Selected Actor
+                </button>
+            </div>
+            </div>
+
+            <!-- Add new actor inputs -->
             <div class="row mt-3">
             <div class="col-md-5">
                 <input
@@ -103,7 +131,7 @@
             </div>
             <div class="col-md-2">
                 <button class="btn btn-success w-100" @click="addNewActorToList">
-                Add
+                Add New Actor
                 </button>
             </div>
             </div>
@@ -123,7 +151,6 @@
             Save Actors
         </button>
         </div>
-
         <!-- Average Rating -->
         <div class="mb-4">
           <h5>Average Rating</h5>
@@ -193,8 +220,9 @@ export default {
     newActor: {
         first_name: '',
         last_name: '',
-    }
-    }
+    },
+   
+  }
    
   },
   computed: {
@@ -215,6 +243,21 @@ export default {
         })
         .catch(err => console.error(err))
     },
+    fetchAllActors() {
+      axios.get('http://127.0.0.1:8000/actors/')
+        .then(res => {
+          this.allActors = res.data;
+
+          // If movie already loaded, select actors currently assigned to movie
+          if (this.movie.actors) {
+            this.editedActors = this.allActors.filter(actor =>
+              this.movie.actors.includes(actor.id)
+            );
+          }
+        })
+        .catch(err => console.error(err));
+    },
+    // Call fetchAllActors() on mounted()
     toggleEditDescription() {
       if (!this.movie) return
       this.editingDescription = !this.editingDescription
@@ -286,7 +329,8 @@ export default {
     }
   },
   mounted() {
-    this.fetchMovie()
+    this.fetchMovie();
+    this.fetchAllActors();
   }
 }
 </script>
