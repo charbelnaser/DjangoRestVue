@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory  } from 'vue-router'
 import MovieList from '../components/MovieList.vue'
 import MovieDetails from '../components/MovieDetails.vue'
 import AddMovie from '../components/AddMovie.vue'

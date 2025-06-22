@@ -1,7 +1,8 @@
 <template>
   <nav class="navbar navbar-expand-lg" style="background-color: black;">
     <div class="container">
-      <a class="navbar-brand" href="/movies" style="color: white;">Movie App</a>
+      <router-link class="navbar-brand" to="/movies" style="color: white;">Movie App</router-link>
+
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto">
             <li class="nav-item">
