@@ -32,6 +32,7 @@ APIProject/
 ### 1. Build and start containers
 
 ```bash
+cd APIProject
 docker-compose build
 docker-compose up
 
