@@ -4,6 +4,7 @@ import MovieDetails from '../components/MovieDetails.vue'
 import AddMovie from '../components/AddMovie.vue'
 
 const routes = [
+  { path: '/', redirect: '/movies' },
   { path: '/movies', name: 'Home', component: MovieList },
   { path: '/movies/:id', name: 'MovieDetails', component: MovieDetails },
   {path: '/add', name: 'AddMovie',  component: AddMovie}
